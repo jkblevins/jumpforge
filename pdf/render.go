@@ -1,6 +1,6 @@
-// Package pdf renders organized decklists as printable PDF cards using gopdf.
-// Each card displays the deck name, a color-identity bar, and card entries
-// grouped by type with quantities.
+// render.go implements the drawing logic for decklist cards. It answers
+// "how to draw" — shapes, text, images, and colors onto the PDF surface.
+// Spatial dimensions and color schemes are defined in layout.go.
 package pdf
 
 import (
@@ -49,45 +49,6 @@ var manaIcons = map[string][]byte{
 	"C": iconC,
 }
 
-// Card dimensions in PDF points (1 inch = 72 points).
-const (
-	cardW = 178.6 // 63mm (MTG card width)
-	cardH = 249.4 // 88mm (MTG card height)
-
-	pageW = 612 // 8.5 inches (US Letter)
-	pageH = 792 // 11 inches (US Letter)
-
-	outerBorderW = 2.5  // thick outer frame
-	innerBorderW = 0.5  // thin inner frame line
-	innerInset   = 5.0  // distance from outer edge to inner frame
-	colorBarH    = 16.0 // top color identity bar (holds deck title)
-	marginX      = 8.0  // text left margin from inner frame
-	marginY      = 10.0 // text top margin from color bar
-	fontTitle    = 10.0
-	fontHeader   = 8.0
-	fontBody     = 7.5
-	lineHeight   = 9.0
-	indentX      = 5.0  // extra indent for card entries under headers
-	groupSpacing = 2.0  // vertical space between type groups
-)
-
-// colorScheme defines the border/bar color and background tint for a color identity.
-type colorScheme struct {
-	border [3]uint8 // color bar and outer border
-	bg     [3]uint8 // card background fill
-}
-
-// colorMap maps single-letter color identities to their visual scheme.
-var colorMap = map[string]colorScheme{
-	"W": {border: [3]uint8{170, 145, 80}, bg: [3]uint8{245, 240, 225}},  // White: darker gold border, warm cream bg
-	"U": {border: [3]uint8{14, 104, 171}, bg: [3]uint8{215, 232, 245}},  // Blue: blue border, light blue bg
-	"B": {border: [3]uint8{50, 40, 50}, bg: [3]uint8{225, 220, 225}},    // Black: near-black border, light gray-purple bg
-	"R": {border: [3]uint8{211, 32, 41}, bg: [3]uint8{245, 225, 220}},   // Red: red border, light pink bg
-	"G": {border: [3]uint8{0, 115, 62}, bg: [3]uint8{220, 238, 220}},    // Green: green border, light green bg
-	"M": {border: [3]uint8{170, 145, 80}, bg: [3]uint8{245, 238, 220}},  // Multicolor: darker gold border, warm bg
-	"C": {border: [3]uint8{158, 158, 158}, bg: [3]uint8{235, 235, 235}}, // Colorless: gray border, light gray bg
-}
-
 // setupFonts registers the embedded DejaVu Sans regular and bold fonts with the PDF.
 func setupFonts(pdf *gopdf.GoPdf) error {
 	if err := pdf.AddTTFFontData("body", fontRegular); err != nil {
@@ -120,11 +81,16 @@ func cardLine(c deck.DeckCard) string {
 	return fmt.Sprintf("%s (%d)", c.Name, c.Quantity)
 }
 
+// decodeManaIcon decodes an embedded PNG into an image.Image.
+func decodeManaIcon(data []byte) (image.Image, error) {
+	return png.Decode(bytes.NewReader(data))
+}
+
 // cardRenderer holds the state needed to draw a single decklist card.
 type cardRenderer struct {
 	pdf    *gopdf.GoPdf
-	x, y   float64      // card origin (upper-left corner)
-	curY   float64       // vertical cursor for text placement
+	x, y   float64    // card origin (upper-left corner)
+	curY   float64     // vertical cursor for text placement
 	scheme colorScheme
 }
 
@@ -157,7 +123,7 @@ func (cr *cardRenderer) drawColorBar() {
 	cr.pdf.RectFromUpperLeftWithStyle(barX, barY, barW, colorBarH, "F")
 }
 
-// drawTitle renders the deck name centered in white on top of the color bar.
+// drawTitle renders the deck name left-aligned in white on top of the color bar.
 func (cr *cardRenderer) drawTitle(name string) {
 	cr.pdf.SetFont("body", "B", fontTitle)
 	cr.pdf.SetTextColor(255, 255, 255)
@@ -172,18 +138,8 @@ func (cr *cardRenderer) drawTitle(name string) {
 	cr.pdf.SetTextColor(30, 30, 30)
 }
 
-// decodeManaIcon decodes an embedded PNG into an image.Image.
-func decodeManaIcon(data []byte) (image.Image, error) {
-	return png.Decode(bytes.NewReader(data))
-}
-
 // drawColorIdentity renders mana symbol icons right-aligned in the color bar.
 func (cr *cardRenderer) drawColorIdentity(colors []string) {
-	const (
-		iconSize = 12.0 // icon dimensions in PDF points
-		iconGap  = 2.0  // space between icons
-	)
-
 	barY := cr.y + innerInset + innerBorderW
 	iconY := barY + (colorBarH-iconSize)/2
 

@@ -6,7 +6,8 @@ import (
 )
 
 func TestParseSingleDeck(t *testing.T) {
-	input := `Goblin Rush
+	input := `
+Goblin Rush
 
 1 Goblin Guide
 2 Lightning Bolt
@@ -80,6 +81,38 @@ func TestParseSkipsBlanksAndComments(t *testing.T) {
 	}
 	if len(decks[0].Cards) != 2 {
 		t.Errorf("expected 2 cards, got %d", len(decks[0].Cards))
+	}
+}
+
+func TestParseCardLine(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    CardEntry
+		wantErr bool
+	}{
+		{"normal card", "2 Lightning Bolt", CardEntry{2, "Lightning Bolt"}, false},
+		{"single quantity", "1 Goblin Guide", CardEntry{1, "Goblin Guide"}, false},
+		{"high quantity", "10 Forest", CardEntry{10, "Forest"}, false},
+		{"no space", "Lightning", CardEntry{}, true},
+		{"non-numeric quantity", "X Mountain", CardEntry{}, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := parseCardLine(tc.input)
+			if tc.wantErr {
+				if err == nil {
+					t.Errorf("expected error for input %q, got nil", tc.input)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error for input %q: %v", tc.input, err)
+			}
+			if got != tc.want {
+				t.Errorf("parseCardLine(%q) = %+v, want %+v", tc.input, got, tc.want)
+			}
+		})
 	}
 }
 

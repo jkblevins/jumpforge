@@ -15,7 +15,7 @@ type CardEntry struct {
 	Name     string
 }
 
-// RawDeck is a parsed decklist with a name and card entries.
+// RawDeck represents is a parsed decklist with a name and card entries.
 type RawDeck struct {
 	Name  string
 	Cards []CardEntry
@@ -32,6 +32,7 @@ func Parse(r io.Reader) ([]RawDeck, error) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 
+		// check for deck separator
 		if line == "---" {
 			if current != nil {
 				decks = append(decks, *current)
@@ -40,34 +41,51 @@ func Parse(r io.Reader) ([]RawDeck, error) {
 			continue
 		}
 
+		// Ignore comments
 		if line == "" || strings.HasPrefix(line, "//") {
 			continue
 		}
 
+		// begin new deck
 		if current == nil {
 			current = &RawDeck{Name: line}
 			continue
 		}
 
-		spaceIdx := strings.IndexByte(line, ' ')
-		if spaceIdx == -1 {
-			return nil, fmt.Errorf("invalid card line: %q", line)
-		}
-		qty, err := strconv.Atoi(line[:spaceIdx])
+		// add cards to deck
+		card, err := parseCardLine(line)
 		if err != nil {
-			return nil, fmt.Errorf("invalid quantity in line %q: %w", line, err)
+			return nil, err
 		}
-		name := strings.TrimSpace(line[spaceIdx+1:])
-		current.Cards = append(current.Cards, CardEntry{Quantity: qty, Name: name})
+		current.Cards = append(current.Cards, card)
 	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
 
+	// add new deck to list of decks
 	if current != nil {
 		decks = append(decks, *current)
 	}
 
 	return decks, nil
+}
+
+// parseCardLine splits a line like "2 Lightning Bolt" into a CardEntry.
+func parseCardLine(line string) (CardEntry, error) {
+	spaceIdx := strings.IndexByte(line, ' ')
+	if spaceIdx == -1 {
+		return CardEntry{}, fmt.Errorf("invalid card line: %q", line)
+	}
+
+	// parse quantity
+	qty, err := strconv.Atoi(line[:spaceIdx])
+	if err != nil {
+		return CardEntry{}, fmt.Errorf("invalid quantity in line %q: %w", line, err)
+	}
+
+	// parse name
+	name := strings.TrimSpace(line[spaceIdx+1:])
+	return CardEntry{Quantity: qty, Name: name}, nil
 }

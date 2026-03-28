@@ -81,6 +81,14 @@ func pluralType(t string) string {
 	}
 }
 
+// cardLine formats a card entry: singles as "Card Name", multiples as "Card Name (N)".
+func cardLine(c deck.DeckCard) string {
+	if c.Quantity == 1 {
+		return c.Name
+	}
+	return fmt.Sprintf("%s (%d)", c.Name, c.Quantity)
+}
+
 // cardRenderer holds the state needed to draw a single decklist card.
 type cardRenderer struct {
 	pdf    *gopdf.GoPdf
@@ -151,7 +159,7 @@ func (cr *cardRenderer) drawGroups(groups []deck.TypeGroup) {
 		cr.pdf.SetFont("body", "", fontBody)
 		cr.pdf.SetTextColor(50, 50, 50)
 		for _, c := range g.Cards {
-			line := fmt.Sprintf("%d %s", c.Quantity, c.Name)
+			line := cardLine(c)
 			cr.pdf.SetXY(textLeft+indentX, cr.curY)
 			cr.pdf.Text(line)
 			cr.curY += lineHeight

@@ -72,7 +72,7 @@ Each card includes:
 - A color-matched border and tinted background based on the deck's color identity
 - Deck name centered in white on the color bar
 - Cards grouped by type with bold headers
-- All cards displayed as `<quantity> <name>` (e.g., `3 Mountain`)
+- Singles displayed by name only (e.g., `Gruul Signet`), multiples as `Name (N)` (e.g., `Mountain (5)`)
 
 ### Color Identity
 

@@ -53,10 +53,16 @@ func main() {
 
 	// Fetch card data from Scryfall.
 	client := scryfall.NewClient(log)
-	cards, err := client.FetchCards(names)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to fetch card data")
+	cards := make(map[string]*scryfall.Card)
+	for _, name := range names {
+		card, err := client.FetchCard(name)
+		if err != nil {
+			log.Warn().Err(err).Str("card", name).Msg("skipping card")
+			continue
+		}
+		cards[name] = card
 	}
+	log.Info().Int("fetched", len(cards)).Int("total", len(names)).Msg("card fetch complete")
 
 	// Organize decks.
 	var decks []deck.Deck

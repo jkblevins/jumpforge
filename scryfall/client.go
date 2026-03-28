@@ -24,7 +24,7 @@ type Card struct {
 }
 
 const (
-	baseURL   = "https://api.scryfall.com/cards/named"
+	baseURL   = "https://api.scryfall.com"
 	userAgent = "jumpforge/1.0 (MTG Jumpstart decklist formatter)"
 	cacheTTL  = 7 * 24 * time.Hour // 1 week
 )
@@ -47,121 +47,100 @@ func NewClient(log zerolog.Logger) *Client {
 }
 
 // FetchCard fetches a single card by exact name, using the cache when possible.
+// See https://scryfall.com/docs/api/cards/named
 func (c *Client) FetchCard(name string) (*Card, error) {
-	safe := safeFileName(name)
+	requestURL := fmt.Sprintf("%s/cards/named?exact=%s", baseURL, url.QueryEscape(name))
+	body, err := c.doRequest(requestURL, safeFileName(name))
+	if err != nil {
+		return nil, fmt.Errorf("fetch card %q: %w", name, err)
+	}
 
-	// Check cache first.
-	if data, ok := readCacheFile(c.cacheDir, safe, cacheTTL); ok {
-		var card Card
-		if err := json.Unmarshal(data, &card); err == nil {
-			c.log.Debug().Str("card", name).Msg("cache hit")
-			return &card, nil
+	var card Card
+	if err := json.Unmarshal(body, &card); err != nil {
+		return nil, fmt.Errorf("parse card %q: %w", name, err)
+	}
+	return &card, nil
+}
+// doRequest performs an HTTP GET with caching, rate limiting, and retry.
+// If cacheKey is non-empty, the response is cached and served from cache
+// on subsequent calls.
+func (c *Client) doRequest(requestURL string, cacheKey string) ([]byte, error) {
+	if cacheKey != "" {
+		if data, ok := readCacheFile(c.cacheDir, cacheKey, cacheTTL); ok {
+			c.log.Debug().Str("cacheKey", cacheKey).Msg("cache hit")
+			return data, nil
 		}
 	}
 
+	body, err := c.executeWithRetry(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	if cacheKey != "" {
+		if err := writeCacheFile(c.cacheDir, cacheKey, body); err != nil {
+			c.log.Warn().Err(err).Str("cacheKey", cacheKey).Msg("failed to write cache")
+		}
+	}
+
+	return body, nil
+}
+
+// executeWithRetry sends a GET request with shared headers and rate limiting.
+// Retries once on 429 after a 2s delay.
+func (c *Client) executeWithRetry(requestURL string) ([]byte, error) {
 	// Rate limit: 100ms between requests per Scryfall guidelines.
 	if !c.lastReq.IsZero() {
-		elapsed := time.Since(c.lastReq)
-		if wait := 100*time.Millisecond - elapsed; wait > 0 {
+		if wait := 100*time.Millisecond - time.Since(c.lastReq); wait > 0 {
 			c.log.Debug().Dur("wait", wait).Msg("rate limit delay")
 			time.Sleep(wait)
 		}
 	}
 
-	return c.fetchFromAPI(name, safe)
-}
-
-func (c *Client) fetchFromAPI(name, safeName string) (*Card, error) {
-	u := fmt.Sprintf("%s?exact=%s", baseURL, url.QueryEscape(name))
-
-	req, err := http.NewRequest("GET", u, nil)
+	body, status, err := c.sendRequest(requestURL)
 	if err != nil {
 		return nil, err
+	}
+
+	if status == http.StatusTooManyRequests {
+		c.log.Warn().Str("url", requestURL).Msg("rate limited (429), retrying in 2s")
+		time.Sleep(2 * time.Second)
+		body, status, err = c.sendRequest(requestURL)
+		if err != nil {
+			return nil, err
+		}
+		if status == http.StatusTooManyRequests {
+			return nil, fmt.Errorf("rate limited for %s after retry", requestURL)
+		}
+	}
+
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d for %s", status, requestURL)
+	}
+
+	return body, nil
+}
+
+// sendRequest performs a single HTTP GET with standard headers.
+func (c *Client) sendRequest(requestURL string) ([]byte, int, error) {
+	req, err := http.NewRequest("GET", requestURL, nil)
+	if err != nil {
+		return nil, 0, err
 	}
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Accept", "application/json")
 
-	start := time.Now()
-	c.lastReq = start
+	c.lastReq = time.Now()
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("scryfall request failed for %q: %w", name, err)
+		return nil, 0, fmt.Errorf("request failed for %s: %w", requestURL, err)
 	}
 	defer resp.Body.Close()
 
-	// Handle 429: wait 2s and retry once.
-	if resp.StatusCode == http.StatusTooManyRequests {
-		resp.Body.Close()
-		c.log.Warn().Str("card", name).Msg("rate limited (429), retrying in 2s")
-		time.Sleep(2 * time.Second)
-
-		// URL is already validated above; error can be safely ignored.
-		req2, _ := http.NewRequest("GET", u, nil)
-		req2.Header.Set("User-Agent", userAgent)
-		req2.Header.Set("Accept", "application/json")
-		start = time.Now()
-		c.lastReq = start
-		resp, err = c.httpClient.Do(req2)
-		if err != nil {
-			return nil, fmt.Errorf("scryfall retry failed for %q: %w", name, err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode == http.StatusTooManyRequests {
-			return nil, fmt.Errorf("scryfall rate limited for %q after retry", name)
-		}
-	}
-
-	duration := time.Since(start)
-
-	if resp.StatusCode == http.StatusNotFound {
-		c.log.Warn().Str("card", name).Msg("not found on Scryfall")
-		return nil, fmt.Errorf("card not found: %q", name)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		c.log.Error().Str("card", name).Int("status", resp.StatusCode).Msg("unexpected API response")
-		return nil, fmt.Errorf("scryfall returned %d for %q", resp.StatusCode, name)
-	}
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, 0, fmt.Errorf("failed to read response for %s: %w", requestURL, err)
 	}
 
-	// Cache the response (non-fatal if it fails).
-	if err := writeCacheFile(c.cacheDir, safeName, body); err != nil {
-		c.log.Warn().Err(err).Str("card", name).Msg("failed to write cache")
-	}
-
-	var card Card
-	if err := json.Unmarshal(body, &card); err != nil {
-		return nil, fmt.Errorf("failed to parse scryfall response for %q: %w", name, err)
-	}
-
-	c.log.Info().Str("card", name).Dur("duration", duration).Msg("fetched from API")
-	return &card, nil
-}
-
-// FetchCards fetches all unique card names and returns a map of name to Card.
-// Cards not found are logged and skipped.
-func (c *Client) FetchCards(names []string) (map[string]*Card, error) {
-	seen := make(map[string]bool)
-	result := make(map[string]*Card)
-
-	for _, name := range names {
-		if seen[name] {
-			continue
-		}
-		seen[name] = true
-
-		card, err := c.FetchCard(name)
-		if err != nil {
-			continue // already logged in FetchCard/fetchFromAPI
-		}
-		result[name] = card
-	}
-
-	c.log.Info().Int("fetched", len(result)).Int("total", len(seen)).Msg("card fetch complete")
-	return result, nil
+	return body, resp.StatusCode, nil
 }

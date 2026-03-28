@@ -33,7 +33,24 @@ func TestClassifyType(t *testing.T) {
 	}
 }
 
-func TestDominantColor(t *testing.T) {
+func TestDominantColorMono(t *testing.T) {
+	cards := map[string]*scryfall.Card{
+		"Goblin Guide":   {ColorIdentity: []string{"R"}},
+		"Lightning Bolt": {ColorIdentity: []string{"R"}},
+		"Mountain":       {ColorIdentity: []string{}},
+	}
+	entries := []parser.CardEntry{
+		{Quantity: 1, Name: "Goblin Guide"},
+		{Quantity: 2, Name: "Lightning Bolt"},
+		{Quantity: 3, Name: "Mountain"},
+	}
+	got := dominantColor(entries, cards)
+	if got != "R" {
+		t.Errorf("expected R (mono-red), got %q", got)
+	}
+}
+
+func TestDominantColorMultipleColors(t *testing.T) {
 	cards := map[string]*scryfall.Card{
 		"Goblin Guide":   {ColorIdentity: []string{"R"}},
 		"Lightning Bolt": {ColorIdentity: []string{"R"}},
@@ -46,10 +63,10 @@ func TestDominantColor(t *testing.T) {
 		{Quantity: 3, Name: "Mountain"},
 		{Quantity: 1, Name: "Llanowar Elves"},
 	}
-	// R appears for qty 1+2=3, G for qty 1 => R wins
+	// Both R and G appear => multicolor
 	got := dominantColor(entries, cards)
-	if got != "R" {
-		t.Errorf("expected R, got %q", got)
+	if got != "M" {
+		t.Errorf("expected M (multicolor), got %q", got)
 	}
 }
 

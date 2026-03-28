@@ -57,46 +57,30 @@ func classifyType(typeLine string) string {
 	return "Land" // fallback
 }
 
-// dominantColor determines which single color appears most frequently across
-// all card entries weighted by quantity. Returns "C" if no colors are present,
-// or "M" if multiple colors are tied for the lead.
+// dominantColor determines the deck's color identity. Returns "C" if no colors
+// are present, "M" if two or more distinct colors appear, or the single color
+// letter if the deck is mono-colored.
 func dominantColor(entries []parser.CardEntry, cards map[string]*scryfall.Card) string {
-	counts := make(map[string]int)
+	colors := make(map[string]bool)
 	for _, e := range entries {
 		c, ok := cards[e.Name]
 		if !ok {
 			continue
 		}
 		for _, color := range c.ColorIdentity {
-			counts[color] += e.Quantity
+			colors[color] = true
 		}
 	}
 
-	if len(counts) == 0 {
+	switch len(colors) {
+	case 0:
 		return "C"
-	}
-
-	// Find max count.
-	maxCount := 0
-	for _, count := range counts {
-		if count > maxCount {
-			maxCount = count
+	case 1:
+		for color := range colors {
+			return color
 		}
 	}
-
-	// Check if a single color strictly dominates.
-	var winners []string
-	for color, count := range counts {
-		if count == maxCount {
-			winners = append(winners, color)
-		}
-	}
-
-	if len(winners) > 1 {
-		return "M" // multicolor -- no single color strictly dominates
-	}
-
-	return winners[0]
+	return "M"
 }
 
 // Organize takes a raw parsed decklist and a map of Scryfall card data, then

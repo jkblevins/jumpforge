@@ -9,11 +9,11 @@ import (
 	"jumpforge/deck"
 )
 
-// gridCols is the number of card columns per page in batch mode.
-const gridCols = 3
-
-// gridRows is the number of card rows per page in batch mode.
-const gridRows = 3
+const (
+	gridCols = 3    // card columns per page in batch mode
+	gridRows = 3    // card rows per page in batch mode
+	cardGap  = 8.0  // spacing between cards in the grid
+)
 
 // RenderSingle creates a card-sized PDF containing a single decklist card
 // and writes it to outPath.
@@ -43,9 +43,11 @@ func RenderBatch(decks []deck.Deck, outPath string) error {
 
 	perPage := gridCols * gridRows
 
-	// Center the grid on the page.
-	offsetX := (pageW - float64(gridCols)*cardW) / 2
-	offsetY := (pageH - float64(gridRows)*cardH) / 2
+	// Center the grid on the page, accounting for gaps between cards.
+	gridW := float64(gridCols)*cardW + float64(gridCols-1)*cardGap
+	gridH := float64(gridRows)*cardH + float64(gridRows-1)*cardGap
+	offsetX := (pageW - gridW) / 2
+	offsetY := (pageH - gridH) / 2
 
 	for i, d := range decks {
 		if i%perPage == 0 {
@@ -54,8 +56,8 @@ func RenderBatch(decks []deck.Deck, outPath string) error {
 		slot := i % perPage
 		col := slot % gridCols
 		row := slot / gridCols
-		x := offsetX + float64(col)*cardW
-		y := offsetY + float64(row)*cardH
+		x := offsetX + float64(col)*(cardW+cardGap)
+		y := offsetY + float64(row)*(cardH+cardGap)
 		renderCard(pdf, d, x, y)
 	}
 

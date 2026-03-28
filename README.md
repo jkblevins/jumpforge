@@ -94,6 +94,8 @@ Cards are grouped by type in this order:
 6. Artifacts
 7. Lands
 
+#### Multi-type cards
+
 Cards with multiple types (e.g., "Artifact Creature") are classified by the most specific type using the priority order above. An Artifact Creature goes under Creatures, not Artifacts. An Enchantment Creature goes under Creatures, not Enchantments.
 
 ### Sorting

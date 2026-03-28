@@ -1,6 +1,6 @@
 # jumpforge
 
-A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pack and generates a printable PDF decklist card with a color-identity-matched border.
+A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pack and generates a printable PDF decklist card with a color-identity-matched border. Each card is sized at 63 x 88mm (standard MTG card dimensions) so it can be sleeved alongside the deck. See [Output](#output) for details.
 
 ## Install
 
@@ -63,7 +63,7 @@ Forest Friends
 4 Forest
 ```
 
-Single deck produces a card-sized PDF (63 x 88mm, standard MTG card size). Multiple decks produce a letter-size PDF with a 3x3 grid.
+Single deck produces a card-sized PDF. Multiple decks produce a letter-size PDF with a 3x3 grid.
 
 ## Output
 

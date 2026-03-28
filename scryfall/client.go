@@ -50,6 +50,7 @@ func NewClient(log zerolog.Logger) *Client {
 // See https://scryfall.com/docs/api/cards/named
 func (c *Client) FetchCard(name string) (*Card, error) {
 	requestURL := fmt.Sprintf("%s/cards/named?exact=%s", baseURL, url.QueryEscape(name))
+	c.log.Debug().Str("card", name).Msg("fetching card")
 	body, err := c.doRequest(requestURL, safeFileName(name))
 	if err != nil {
 		return nil, fmt.Errorf("fetch card %q: %w", name, err)
@@ -92,7 +93,6 @@ func (c *Client) executeWithRetry(requestURL string) ([]byte, error) {
 	// Rate limit: 100ms between requests per Scryfall guidelines.
 	if !c.lastReq.IsZero() {
 		if wait := 100*time.Millisecond - time.Since(c.lastReq); wait > 0 {
-			c.log.Debug().Dur("wait", wait).Msg("rate limit delay")
 			time.Sleep(wait)
 		}
 	}

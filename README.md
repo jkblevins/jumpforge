@@ -2,6 +2,8 @@
 
 A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pack and generates a printable PDF decklist card with a color-identity-matched border. Each card is sized at 63 x 88mm (standard MTG card dimensions) so it can be sleeved alongside the deck. See [Output](#output) for details.
 
+![Example batch output showing six Jumpstart decklists](docs/example.png)
+
 ## Install
 
 ```bash

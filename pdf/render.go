@@ -21,14 +21,14 @@ const (
 	pageW = 612 // 8.5 inches (US Letter)
 	pageH = 792 // 11 inches (US Letter)
 
-	colorBarH   = 11
-	borderW     = 0.75
-	marginX     = 7
-	marginY     = 5
-	fontTitle    = 9
-	fontHeader   = 7.5
-	fontBody     = 7
-	lineHeight   = 9
+	colorBarH  = 11
+	borderW    = 0.75
+	marginX    = 7
+	marginY    = 5
+	fontTitle  = 9
+	fontHeader = 7.5
+	fontBody   = 7
+	lineHeight = 9
 )
 
 // colorMap maps single-letter color identities to RGB values used for the

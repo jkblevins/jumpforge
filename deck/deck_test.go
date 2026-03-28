@@ -35,9 +35,9 @@ func TestClassifyType(t *testing.T) {
 
 func TestDominantColorMono(t *testing.T) {
 	cards := map[string]*scryfall.Card{
-		"Goblin Guide":   {ColorIdentity: []string{"R"}},
-		"Lightning Bolt": {ColorIdentity: []string{"R"}},
-		"Mountain":       {ColorIdentity: []string{}},
+		"Goblin Guide":   {Colors: []string{"R"}},
+		"Lightning Bolt": {Colors: []string{"R"}},
+		"Mountain":       {Colors: []string{}},
 	}
 	entries := []parser.CardEntry{
 		{Quantity: 1, Name: "Goblin Guide"},
@@ -52,10 +52,10 @@ func TestDominantColorMono(t *testing.T) {
 
 func TestDominantColorMultipleColors(t *testing.T) {
 	cards := map[string]*scryfall.Card{
-		"Goblin Guide":   {ColorIdentity: []string{"R"}},
-		"Lightning Bolt": {ColorIdentity: []string{"R"}},
-		"Mountain":       {ColorIdentity: []string{}},
-		"Llanowar Elves": {ColorIdentity: []string{"G"}},
+		"Goblin Guide":   {Colors: []string{"R"}},
+		"Lightning Bolt": {Colors: []string{"R"}},
+		"Mountain":       {Colors: []string{}},
+		"Llanowar Elves": {Colors: []string{"G"}},
 	}
 	entries := []parser.CardEntry{
 		{Quantity: 1, Name: "Goblin Guide"},
@@ -72,8 +72,8 @@ func TestDominantColorMultipleColors(t *testing.T) {
 
 func TestDominantColorColorless(t *testing.T) {
 	cards := map[string]*scryfall.Card{
-		"Mountain": {ColorIdentity: []string{}},
-		"Forest":   {ColorIdentity: []string{}},
+		"Mountain": {Colors: []string{}},
+		"Forest":   {Colors: []string{}},
 	}
 	entries := []parser.CardEntry{
 		{Quantity: 3, Name: "Mountain"},
@@ -87,8 +87,8 @@ func TestDominantColorColorless(t *testing.T) {
 
 func TestDominantColorMulticolor(t *testing.T) {
 	cards := map[string]*scryfall.Card{
-		"CardR": {ColorIdentity: []string{"R"}},
-		"CardG": {ColorIdentity: []string{"G"}},
+		"CardR": {Colors: []string{"R"}},
+		"CardG": {Colors: []string{"G"}},
 	}
 	entries := []parser.CardEntry{
 		{Quantity: 2, Name: "CardR"},
@@ -115,18 +115,18 @@ func TestOrganize(t *testing.T) {
 			Name:          "Goblin Guide",
 			TypeLine:      "Creature — Goblin Scout",
 			CMC:           1,
-			ColorIdentity: []string{"R"},
+			Colors: []string{"R"},
 		},
 		"Lightning Bolt": {
 			Name:          "Lightning Bolt",
 			TypeLine:      "Instant",
 			CMC:           1,
-			ColorIdentity: []string{"R"},
+			Colors: []string{"R"},
 		},
 		"Mountain": {
 			Name:          "Mountain",
 			TypeLine:      "Basic Land — Mountain",
-			ColorIdentity: []string{},
+			Colors: []string{},
 		},
 	}
 	d := Organize(raw, cards)
@@ -163,11 +163,11 @@ func TestSortWithinGroup(t *testing.T) {
 	cards := map[string]*scryfall.Card{
 		"Goblin Chainwhirler": {
 			Name: "Goblin Chainwhirler", TypeLine: "Creature — Goblin Warrior",
-			CMC: 3, ColorIdentity: []string{"R"},
+			CMC: 3, Colors: []string{"R"},
 		},
 		"Goblin Guide": {
 			Name: "Goblin Guide", TypeLine: "Creature — Goblin Scout",
-			CMC: 1, ColorIdentity: []string{"R"},
+			CMC: 1, Colors: []string{"R"},
 		},
 	}
 	d := Organize(raw, cards)

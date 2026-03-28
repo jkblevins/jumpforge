@@ -61,8 +61,9 @@ func classifyType(typeLine string) string {
 	return "Land" // fallback
 }
 
-// deckColors collects distinct colors from all cards and returns them in WUBRG order.
-// Returns {"C"} for colorless decks.
+// deckColors collects distinct casting cost colors from all cards and returns
+// them in WUBRG order. Uses Colors (casting cost) rather than ColorIdentity
+// (which includes activated abilities). Returns {"C"} for colorless decks.
 func deckColors(entries []parser.CardEntry, cards map[string]*scryfall.Card) []string {
 	present := make(map[string]bool)
 	for _, e := range entries {
@@ -70,7 +71,7 @@ func deckColors(entries []parser.CardEntry, cards map[string]*scryfall.Card) []s
 		if !ok {
 			continue
 		}
-		for _, color := range c.ColorIdentity {
+		for _, color := range c.Colors {
 			present[color] = true
 		}
 	}

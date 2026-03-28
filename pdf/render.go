@@ -49,43 +49,6 @@ var manaIcons = map[string][]byte{
 	"C": iconC,
 }
 
-// setupFonts registers the embedded DejaVu Sans regular and bold fonts with the PDF.
-func setupFonts(pdf *gopdf.GoPdf) error {
-	if err := pdf.AddTTFFontData("body", fontRegular); err != nil {
-		return fmt.Errorf("add regular font: %w", err)
-	}
-	if err := pdf.AddTTFFontDataWithOption("body", fontBold, gopdf.TtfOption{Style: gopdf.Bold}); err != nil {
-		return fmt.Errorf("add bold font: %w", err)
-	}
-	return nil
-}
-
-// pluralType converts a singular card type name to its plural form for
-// display in group headers.
-func pluralType(t string) string {
-	switch t {
-	case "Sorcery":
-		return "Sorceries"
-	case "Land":
-		return "Lands"
-	default:
-		return t + "s"
-	}
-}
-
-// cardLine formats a card entry: singles as "Card Name", multiples as "Card Name (N)".
-func cardLine(c deck.DeckCard) string {
-	if c.Quantity == 1 {
-		return c.Name
-	}
-	return fmt.Sprintf("%s (%d)", c.Name, c.Quantity)
-}
-
-// decodeManaIcon decodes an embedded PNG into an image.Image.
-func decodeManaIcon(data []byte) (image.Image, error) {
-	return png.Decode(bytes.NewReader(data))
-}
-
 // cardRenderer holds the state needed to draw a single decklist card.
 type cardRenderer struct {
 	pdf    *gopdf.GoPdf
@@ -138,6 +101,11 @@ func (cr *cardRenderer) drawTitle(name string) {
 	cr.pdf.SetTextColor(30, 30, 30)
 }
 
+// decodeManaIcon decodes an embedded PNG into an image.Image.
+func decodeManaIcon(data []byte) (image.Image, error) {
+	return png.Decode(bytes.NewReader(data))
+}
+
 // drawColorIdentity renders mana symbol icons right-aligned in the color bar.
 func (cr *cardRenderer) drawColorIdentity(colors []string) {
 	barY := cr.y + innerInset + innerBorderW
@@ -159,6 +127,27 @@ func (cr *cardRenderer) drawColorIdentity(colors []string) {
 		x := startX + float64(i)*(iconSize+iconGap)
 		cr.pdf.ImageFrom(img, x, iconY, &gopdf.Rect{W: iconSize, H: iconSize})
 	}
+}
+
+// pluralType converts a singular card type name to its plural form for
+// display in group headers.
+func pluralType(t string) string {
+	switch t {
+	case "Sorcery":
+		return "Sorceries"
+	case "Land":
+		return "Lands"
+	default:
+		return t + "s"
+	}
+}
+
+// cardLine formats a card entry: singles as "Card Name", multiples as "Card Name (N)".
+func cardLine(c deck.DeckCard) string {
+	if c.Quantity == 1 {
+		return c.Name
+	}
+	return fmt.Sprintf("%s (%d)", c.Name, c.Quantity)
 }
 
 // drawGroups renders all type groups with headers and indented card entries.
@@ -183,6 +172,17 @@ func (cr *cardRenderer) drawGroups(groups []deck.TypeGroup) {
 		}
 		cr.curY += groupSpacing
 	}
+}
+
+// setupFonts registers the embedded DejaVu Sans regular and bold fonts with the PDF.
+func setupFonts(pdf *gopdf.GoPdf) error {
+	if err := pdf.AddTTFFontData("body", fontRegular); err != nil {
+		return fmt.Errorf("add regular font: %w", err)
+	}
+	if err := pdf.AddTTFFontDataWithOption("body", fontBold, gopdf.TtfOption{Style: gopdf.Bold}); err != nil {
+		return fmt.Errorf("add bold font: %w", err)
+	}
+	return nil
 }
 
 // renderCard draws a single decklist card onto the PDF at the given offset.

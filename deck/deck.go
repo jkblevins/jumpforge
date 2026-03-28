@@ -11,17 +11,6 @@ import (
 	"jumpforge/scryfall"
 )
 
-// typeOrder defines the display order for card type groups.
-var typeOrder = []string{
-	"Creature",
-	"Planeswalker",
-	"Instant",
-	"Sorcery",
-	"Enchantment",
-	"Artifact",
-	"Land",
-}
-
 // DeckCard represents a single card entry within a type group.
 type DeckCard struct {
 	Name     string
@@ -37,9 +26,6 @@ type TypeGroup struct {
 	Count    int // total quantity
 }
 
-// wubrg defines the canonical MTG color wheel order for sorting.
-var wubrg = []string{"W", "U", "B", "R", "G"}
-
 // Deck is a fully organized decklist ready for rendering, with cards grouped
 // by type and a dominant color determined from color identity frequencies.
 type Deck struct {
@@ -47,59 +33,6 @@ type Deck struct {
 	DominantColor string   // W, U, B, R, G, M (multicolor), C (colorless)
 	ColorIdentity []string // distinct colors in WUBRG order, or {"C"} for colorless
 	Groups        []TypeGroup
-}
-
-// classifyType maps a Scryfall type line to one of the canonical type group
-// names. The first match in typeOrder wins, so "Artifact Creature" becomes
-// "Creature" rather than "Artifact".
-func classifyType(typeLine string) string {
-	for _, t := range typeOrder {
-		if strings.Contains(typeLine, t) {
-			return t
-		}
-	}
-	return "Land" // fallback
-}
-
-// deckColors collects distinct casting cost colors from all cards and returns
-// them in WUBRG order. Uses Colors (casting cost) rather than ColorIdentity
-// (which includes activated abilities). Returns {"C"} for colorless decks.
-func deckColors(entries []parser.CardEntry, cards map[string]*scryfall.Card) []string {
-	present := make(map[string]bool)
-	for _, e := range entries {
-		c, ok := cards[e.Name]
-		if !ok {
-			continue
-		}
-		for _, color := range c.Colors {
-			present[color] = true
-		}
-	}
-
-	if len(present) == 0 {
-		return []string{"C"}
-	}
-
-	var colors []string
-	for _, c := range wubrg {
-		if present[c] {
-			colors = append(colors, c)
-		}
-	}
-	return colors
-}
-
-// dominantColor determines the deck's color identity. Returns "C" if no colors
-// are present, "M" if two or more distinct colors appear, or the single color
-// letter if the deck is mono-colored.
-func dominantColor(colors []string) string {
-	if len(colors) == 1 && colors[0] == "C" {
-		return "C"
-	}
-	if len(colors) == 1 {
-		return colors[0]
-	}
-	return "M"
 }
 
 // Organize takes a raw parsed decklist and a map of Scryfall card data, then
@@ -162,4 +95,71 @@ func Organize(raw parser.RawDeck, cards map[string]*scryfall.Card) Deck {
 		ColorIdentity: colors,
 		Groups:        groups,
 	}
+}
+
+// typeOrder defines the display order for card type groups.
+var typeOrder = []string{
+	"Creature",
+	"Planeswalker",
+	"Instant",
+	"Sorcery",
+	"Enchantment",
+	"Artifact",
+	"Land",
+}
+
+// wubrg defines the canonical MTG color wheel order for sorting.
+var wubrg = []string{"W", "U", "B", "R", "G"}
+
+// classifyType maps a Scryfall type line to one of the canonical type group
+// names. The first match in typeOrder wins, so "Artifact Creature" becomes
+// "Creature" rather than "Artifact".
+func classifyType(typeLine string) string {
+	for _, t := range typeOrder {
+		if strings.Contains(typeLine, t) {
+			return t
+		}
+	}
+	return "Land" // fallback
+}
+
+// deckColors collects distinct casting cost colors from all cards and returns
+// them in WUBRG order. Uses Colors (casting cost) rather than ColorIdentity
+// (which includes activated abilities). Returns {"C"} for colorless decks.
+func deckColors(entries []parser.CardEntry, cards map[string]*scryfall.Card) []string {
+	present := make(map[string]bool)
+	for _, e := range entries {
+		c, ok := cards[e.Name]
+		if !ok {
+			continue
+		}
+		for _, color := range c.Colors {
+			present[color] = true
+		}
+	}
+
+	if len(present) == 0 {
+		return []string{"C"}
+	}
+
+	var colors []string
+	for _, c := range wubrg {
+		if present[c] {
+			colors = append(colors, c)
+		}
+	}
+	return colors
+}
+
+// dominantColor determines the deck's color identity. Returns "C" if no colors
+// are present, "M" if two or more distinct colors appear, or the single color
+// letter if the deck is mono-colored.
+func dominantColor(colors []string) string {
+	if len(colors) == 1 && colors[0] == "C" {
+		return "C"
+	}
+	if len(colors) == 1 {
+		return colors[0]
+	}
+	return "M"
 }

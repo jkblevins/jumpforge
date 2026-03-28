@@ -4,8 +4,11 @@
 package pdf
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
+	"image"
+	"image/png"
 
 	"github.com/signintech/gopdf"
 
@@ -17,6 +20,34 @@ var fontRegular []byte
 
 //go:embed fonts/DejaVuSans-Bold.ttf
 var fontBold []byte
+
+//go:embed icons/W.png
+var iconW []byte
+
+//go:embed icons/U.png
+var iconU []byte
+
+//go:embed icons/B.png
+var iconB []byte
+
+//go:embed icons/R.png
+var iconR []byte
+
+//go:embed icons/G.png
+var iconG []byte
+
+//go:embed icons/C.png
+var iconC []byte
+
+// manaIcons maps color identity letters to their embedded PNG data.
+var manaIcons = map[string][]byte{
+	"W": iconW,
+	"U": iconU,
+	"B": iconB,
+	"R": iconR,
+	"G": iconG,
+	"C": iconC,
+}
 
 // Card dimensions in PDF points (1 inch = 72 points).
 const (
@@ -133,9 +164,7 @@ func (cr *cardRenderer) drawTitle(name string) {
 
 	barY := cr.y + innerInset + innerBorderW
 	nameX := cr.x + innerInset + marginX
-	// Text() uses baseline positioning. Offset down by ~75% of font size
-	// to visually center within the color bar.
-	nameY := barY + (colorBarH+fontTitle*0.5)/2
+	nameY := barY + (colorBarH+fontTitle*0.65)/2
 	cr.pdf.SetXY(nameX, nameY)
 	cr.pdf.Text(name)
 
@@ -143,29 +172,37 @@ func (cr *cardRenderer) drawTitle(name string) {
 	cr.pdf.SetTextColor(30, 30, 30)
 }
 
-// formatColorIdentity formats a slice of color letters as Scryfall-style braces.
-func formatColorIdentity(colors []string) string {
-	var s string
-	for _, c := range colors {
-		s += "{" + c + "}"
-	}
-	return s
+// decodeManaIcon decodes an embedded PNG into an image.Image.
+func decodeManaIcon(data []byte) (image.Image, error) {
+	return png.Decode(bytes.NewReader(data))
 }
 
-// drawColorIdentity renders the deck's color identity right-aligned in the color bar.
+// drawColorIdentity renders mana symbol icons right-aligned in the color bar.
 func (cr *cardRenderer) drawColorIdentity(colors []string) {
-	text := formatColorIdentity(colors)
-	cr.pdf.SetFont("body", "B", fontHeader)
-	cr.pdf.SetTextColor(255, 255, 255)
+	const (
+		iconSize = 12.0 // icon dimensions in PDF points
+		iconGap  = 2.0  // space between icons
+	)
 
 	barY := cr.y + innerInset + innerBorderW
-	textW, _ := cr.pdf.MeasureTextWidth(text)
-	textX := cr.x + cardW - innerInset - marginX - textW
-	textY := barY + (colorBarH+fontHeader*0.5)/2
-	cr.pdf.SetXY(textX, textY)
-	cr.pdf.Text(text)
+	iconY := barY + (colorBarH-iconSize)/2
 
-	cr.pdf.SetTextColor(30, 30, 30)
+	// Calculate total width to right-align.
+	totalW := float64(len(colors))*iconSize + float64(len(colors)-1)*iconGap
+	startX := cr.x + cardW - innerInset - marginX/2 - totalW
+
+	for i, color := range colors {
+		data, ok := manaIcons[color]
+		if !ok {
+			continue
+		}
+		img, err := decodeManaIcon(data)
+		if err != nil {
+			continue
+		}
+		x := startX + float64(i)*(iconSize+iconGap)
+		cr.pdf.ImageFrom(img, x, iconY, &gopdf.Rect{W: iconSize, H: iconSize})
+	}
 }
 
 // drawGroups renders all type groups with headers and indented card entries.

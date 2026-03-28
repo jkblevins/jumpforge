@@ -5,7 +5,13 @@ A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pa
 ## Install
 
 ```bash
-go install jumpforge@latest
+go install github.com/jkblevins/jumpforge@latest
+```
+
+Make sure `$(go env GOPATH)/bin` is on your `PATH`:
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 Or build from source:
@@ -57,7 +63,7 @@ Forest Friends
 4 Forest
 ```
 
-Single deck produces a card-sized PDF (2.5" x 3.5"). Multiple decks produce a letter-size PDF with a 3x3 grid.
+Single deck produces a card-sized PDF (63 x 88mm, standard MTG card size). Multiple decks produce a letter-size PDF with a 3x3 grid.
 
 ## Output
 

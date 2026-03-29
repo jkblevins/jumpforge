@@ -63,13 +63,13 @@ type colorScheme struct {
 
 // colorMap maps single-letter color identities to their visual scheme.
 var colorMap = map[string]colorScheme{
-	"W": {border: [3]uint8{190, 180, 155}, bg: [3]uint8{250, 247, 238}},  // White: silvery-warm border, ivory bg
-	"U": {border: [3]uint8{14, 104, 171}, bg: [3]uint8{215, 232, 245}},  // Blue: blue border, light blue bg
-	"B": {border: [3]uint8{50, 40, 50}, bg: [3]uint8{225, 220, 225}},    // Black: near-black border, light gray-purple bg
-	"R": {border: [3]uint8{211, 32, 41}, bg: [3]uint8{245, 225, 220}},   // Red: red border, light pink bg
-	"G": {border: [3]uint8{0, 115, 62}, bg: [3]uint8{220, 238, 220}},    // Green: green border, light green bg
-	"M": {border: [3]uint8{185, 150, 28}, bg: [3]uint8{250, 242, 210}},  // Multicolor: rich gold border, warm gold bg
-	"C": {border: [3]uint8{158, 158, 158}, bg: [3]uint8{235, 235, 235}}, // Colorless: gray border, light gray bg
+	"W": {border: [3]uint8{190, 180, 155}, bg: [3]uint8{252, 250, 245}},  // White: silvery-warm border, ivory bg
+	"U": {border: [3]uint8{14, 104, 171}, bg: [3]uint8{235, 244, 252}},  // Blue: blue border, light blue bg
+	"B": {border: [3]uint8{50, 40, 50}, bg: [3]uint8{240, 238, 240}},    // Black: near-black border, light gray-purple bg
+	"R": {border: [3]uint8{211, 32, 41}, bg: [3]uint8{250, 240, 238}},   // Red: red border, light pink bg
+	"G": {border: [3]uint8{0, 115, 62}, bg: [3]uint8{238, 248, 238}},    // Green: green border, light green bg
+	"M": {border: [3]uint8{185, 150, 28}, bg: [3]uint8{252, 248, 232}},  // Multicolor: rich gold border, warm gold bg
+	"C": {border: [3]uint8{158, 158, 158}, bg: [3]uint8{245, 245, 245}}, // Colorless: gray border, light gray bg
 }
 
 // RenderSingle creates a card-sized PDF containing a single decklist card

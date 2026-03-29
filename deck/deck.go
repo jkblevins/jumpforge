@@ -89,9 +89,13 @@ func Organize(raw parser.RawDeck, cards map[string]*scryfall.Card) Deck {
 	}
 
 	colors := deckColors(raw.Cards, cards)
+	dominant := dominantColor(colors)
+	if raw.ColorOverride != "" {
+		dominant = raw.ColorOverride
+	}
 	return Deck{
 		Name:          raw.Name,
-		DominantColor: dominantColor(colors),
+		DominantColor: dominant,
 		ColorIdentity: colors,
 		Groups:        groups,
 	}

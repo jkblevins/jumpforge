@@ -331,6 +331,47 @@ func TestSortWithinGroup(t *testing.T) {
 	}
 }
 
+func TestOrganizeWithColorOverride(t *testing.T) {
+	raw := parser.RawDeck{
+		Name:          "Azorius Senate",
+		ColorOverride: "W",
+		Cards: []parser.CardEntry{
+			{Quantity: 1, Name: "Swords"},
+			{Quantity: 1, Name: "Counterspell"},
+		},
+	}
+	cards := map[string]*scryfall.Card{
+		"Swords":       {Name: "Swords", TypeLine: "Instant", CMC: 1, Colors: []string{"W"}},
+		"Counterspell": {Name: "Counterspell", TypeLine: "Instant", CMC: 2, Colors: []string{"U"}},
+	}
+	d := Organize(raw, cards)
+	if d.DominantColor != "W" {
+		t.Errorf("expected DominantColor 'W' (override), got %q", d.DominantColor)
+	}
+	// ColorIdentity should still be auto-detected
+	if len(d.ColorIdentity) != 2 {
+		t.Fatalf("expected 2 colors in identity, got %d", len(d.ColorIdentity))
+	}
+}
+
+func TestOrganizeWithoutColorOverride(t *testing.T) {
+	raw := parser.RawDeck{
+		Name: "Azorius Senate",
+		Cards: []parser.CardEntry{
+			{Quantity: 1, Name: "Swords"},
+			{Quantity: 1, Name: "Counterspell"},
+		},
+	}
+	cards := map[string]*scryfall.Card{
+		"Swords":       {Name: "Swords", TypeLine: "Instant", CMC: 1, Colors: []string{"W"}},
+		"Counterspell": {Name: "Counterspell", TypeLine: "Instant", CMC: 2, Colors: []string{"U"}},
+	}
+	d := Organize(raw, cards)
+	if d.DominantColor != "M" {
+		t.Errorf("expected DominantColor 'M' (auto-detected multicolor), got %q", d.DominantColor)
+	}
+}
+
 func TestValidColor(t *testing.T) {
 	valid := []string{"W", "U", "B", "R", "G", "M", "C"}
 	for _, c := range valid {

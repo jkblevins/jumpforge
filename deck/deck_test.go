@@ -330,3 +330,18 @@ func TestSortWithinGroup(t *testing.T) {
 		t.Errorf("expected Goblin Guide first (CMC 1), got %q", creatures.Cards[0].Name)
 	}
 }
+
+func TestValidColor(t *testing.T) {
+	valid := []string{"W", "U", "B", "R", "G", "M", "C"}
+	for _, c := range valid {
+		if !ValidColor(c) {
+			t.Errorf("ValidColor(%q) = false, want true", c)
+		}
+	}
+	invalid := []string{"w", "X", "WU", "", "Gold", "1"}
+	for _, c := range invalid {
+		if ValidColor(c) {
+			t.Errorf("ValidColor(%q) = true, want false", c)
+		}
+	}
+}

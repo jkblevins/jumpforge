@@ -111,6 +111,17 @@ var typeOrder = []string{
 // wubrg defines the canonical MTG color wheel order for sorting.
 var wubrg = []string{"W", "U", "B", "R", "G"}
 
+// validColors is the set of accepted color codes for deck color override.
+var validColors = map[string]bool{
+	"W": true, "U": true, "B": true, "R": true, "G": true,
+	"M": true, "C": true,
+}
+
+// ValidColor reports whether s is a valid deck color code.
+func ValidColor(s string) bool {
+	return validColors[s]
+}
+
 // classifyType maps a Scryfall type line to one of the canonical type group
 // names. The first match in typeOrder wins, so "Artifact Creature" becomes
 // "Creature" rather than "Artifact".

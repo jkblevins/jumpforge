@@ -57,13 +57,16 @@ type cardRenderer struct {
 	scheme colorScheme
 }
 
-// drawFrame draws the outer border, tinted background, and inner frame line.
+// drawFrame draws the bleed area, outer border, tinted background, and inner frame line.
 func (cr *cardRenderer) drawFrame() {
 	b := cr.scheme.border
 	bg := cr.scheme.bg
 
+	// Bleed area — extend border color beyond card bounds for cutting margin.
+	cr.pdf.SetFillColor(b[0], b[1], b[2])
+	cr.pdf.RectFromUpperLeftWithStyle(cr.x-bleed, cr.y-bleed, cardW+2*bleed, cardH+2*bleed, "F")
+
 	// Tinted background with color-matched border.
-	// Inset by half the stroke width so the border stays within card bounds.
 	half := outerBorderW / 2
 	cr.pdf.SetFillColor(bg[0], bg[1], bg[2])
 	cr.pdf.SetStrokeColor(b[0], b[1], b[2])

@@ -1,8 +1,14 @@
 # jumpforge
 
-A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pack and generates a printable PDF decklist card with a color-identity-matched border. Each card is sized at 63 x 88mm (standard MTG card dimensions) so it can be sleeved alongside the deck. See [Output](#output) for details.
+A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pack and generates a printable PDF decklist card with a color-identity-matched border. Each card is sized at 61 x 86mm (slightly smaller than the 63 x 88mm MTG card) so it doesn't extend past the rounded corners of a real card when sleeved together. See [Output](#output) for details.
 
 ![Example batch output showing six Jumpstart decklists](docs/example.png)
+
+### Printing and Cutting
+
+Each card is printed with a colored bleed margin extending beyond the card border. This means you don't have to carefully cut along the border lines — cut anywhere in the bleed area and the result still looks clean. The bleed areas of adjacent cards touch with no white gaps to minimize wasted paper.
+
+To use: print the PDF at 100% scale (no "fit to page"), cut out each card along the outer border, and optionally round the corners. Slide the card in front of a real MTG card in a sleeve.
 
 ## Install
 

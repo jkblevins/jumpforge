@@ -15,8 +15,8 @@ import (
 
 // Card dimensions in PDF points (1 inch = 72 points).
 const (
-	cardW = 178.6 // 63mm (MTG card width)
-	cardH = 249.4 // 88mm (MTG card height)
+	cardW = 172.9 // 61mm (1mm inset from MTG card edge for rounded corners)
+	cardH = 243.7 // 86mm (1mm inset from MTG card edge for rounded corners)
 
 	pageW = 612 // 8.5 inches (US Letter)
 	pageH = 792 // 11 inches (US Letter)
@@ -52,7 +52,8 @@ const (
 const (
 	gridCols = 3   // card columns per page in batch mode
 	gridRows = 3   // card rows per page in batch mode
-	cardGap  = 8.0 // spacing between cards in the grid
+	cardGap  = 0.0 // no gap — bleed areas fill the space between cards
+	bleed    = 8.5 // ~3mm bleed around each card for cutting margin
 )
 
 // colorScheme defines the border/bar color and background tint for a color identity.
@@ -77,13 +78,13 @@ var colorMap = map[string]colorScheme{
 func RenderSingle(d deck.Deck, outPath string) error {
 	pdf := &gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{
-		PageSize: gopdf.Rect{W: cardW, H: cardH},
+		PageSize: gopdf.Rect{W: cardW + 2*bleed, H: cardH + 2*bleed},
 	})
 	if err := setupFonts(pdf); err != nil {
 		return fmt.Errorf("setup fonts: %w", err)
 	}
 	pdf.AddPage()
-	renderCard(pdf, d, 0, 0)
+	renderCard(pdf, d, bleed, bleed)
 	return pdf.WritePdf(outPath)
 }
 
@@ -100,9 +101,13 @@ func RenderBatch(decks []deck.Deck, outPath string) error {
 
 	perPage := gridCols * gridRows
 
-	// Center the grid on the page, accounting for gaps between cards.
-	gridW := float64(gridCols)*cardW + float64(gridCols-1)*cardGap
-	gridH := float64(gridRows)*cardH + float64(gridRows-1)*cardGap
+	// Each cell includes the card plus bleed on all sides.
+	cellW := cardW + 2*bleed
+	cellH := cardH + 2*bleed
+
+	// Center the grid on the page.
+	gridW := float64(gridCols) * cellW
+	gridH := float64(gridRows) * cellH
 	offsetX := (pageW - gridW) / 2
 	offsetY := (pageH - gridH) / 2
 
@@ -113,8 +118,9 @@ func RenderBatch(decks []deck.Deck, outPath string) error {
 		slot := i % perPage
 		col := slot % gridCols
 		row := slot / gridCols
-		x := offsetX + float64(col)*(cardW+cardGap)
-		y := offsetY + float64(row)*(cardH+cardGap)
+		// Position card content at bleed offset within each cell.
+		x := offsetX + float64(col)*cellW + bleed
+		y := offsetY + float64(row)*cellH + bleed
 		renderCard(pdf, d, x, y)
 	}
 

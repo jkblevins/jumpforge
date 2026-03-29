@@ -3,8 +3,8 @@ package deck
 import (
 	"testing"
 
-	"jumpforge/parser"
-	"jumpforge/scryfall"
+	"jumpstart-decklists/parser"
+	"jumpstart-decklists/scryfall"
 )
 
 func TestClassifyType(t *testing.T) {

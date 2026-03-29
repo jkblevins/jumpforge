@@ -10,7 +10,7 @@ import (
 
 	"github.com/signintech/gopdf"
 
-	"jumpforge/deck"
+	"jumpstart-decklists/deck"
 )
 
 // Card dimensions in PDF points (1 inch = 72 points).

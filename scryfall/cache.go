@@ -21,7 +21,7 @@ func safeFileName(name string) string {
 // cacheDir returns the default cache directory path.
 func cacheDir() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".cache", "jumpforge")
+	return filepath.Join(home, ".cache", "jumpstart-decklists")
 }
 
 // readCacheFile reads a cached card response if it exists and is fresh.

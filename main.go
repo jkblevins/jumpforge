@@ -8,15 +8,15 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"jumpforge/deck"
-	"jumpforge/parser"
-	"jumpforge/pdf"
-	"jumpforge/scryfall"
+	"jumpstart-decklists/deck"
+	"jumpstart-decklists/parser"
+	"jumpstart-decklists/pdf"
+	"jumpstart-decklists/scryfall"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: jumpforge <decklist.txt>")
+		fmt.Fprintln(os.Stderr, "usage: jumpstart-decklists <decklist.txt>")
 		os.Exit(1)
 	}
 

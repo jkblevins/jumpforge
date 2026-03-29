@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"jumpforge/parser"
-	"jumpforge/scryfall"
+	"jumpstart-decklists/parser"
+	"jumpstart-decklists/scryfall"
 )
 
 // DeckCard represents a single card entry within a type group.

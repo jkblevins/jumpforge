@@ -25,7 +25,7 @@ type Card struct {
 
 const (
 	baseURL   = "https://api.scryfall.com"
-	userAgent = "jumpforge/1.0 (MTG Jumpstart decklist formatter)"
+	userAgent = "jumpstart-decklists/1.0 (MTG Jumpstart decklist formatter)"
 	cacheTTL  = 7 * 24 * time.Hour // 1 week
 )
 

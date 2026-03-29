@@ -1,4 +1,4 @@
-module jumpforge
+module jumpstart-decklists
 
 go 1.23.2
 

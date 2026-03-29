@@ -1,4 +1,4 @@
-# jumpforge
+# jumpstart-decklists
 
 A Go CLI tool that takes a text decklist for a Magic: The Gathering Jumpstart pack and generates a printable PDF decklist card with a color-identity-matched border. Each card is sized at 61 x 86mm (slightly smaller than the 63 x 88mm MTG card) so it doesn't extend past the rounded corners of a real card when sleeved together. See [Output](#output) for details.
 
@@ -13,7 +13,7 @@ To use: print the PDF at 100% scale (no "fit to page"), cut out each card along 
 ## Install
 
 ```bash
-go install github.com/jkblevins/jumpforge@latest
+go install github.com/jkblevins/jumpstart-decklists@latest
 ```
 
 Make sure `$(go env GOPATH)/bin` is on your `PATH`:
@@ -25,15 +25,15 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 Or build from source:
 
 ```bash
-git clone https://github.com/jkblevins/jumpforge.git
-cd jumpforge
-go build -o jumpforge .
+git clone https://github.com/jkblevins/jumpstart-decklists.git
+cd jumpstart-decklists
+go build -o jumpstart-decklists .
 ```
 
 ## Usage
 
 ```bash
-jumpforge decklist.txt
+jumpstart-decklists decklist.txt
 ```
 
 ### Input Format
@@ -133,4 +133,4 @@ Within each group, cards are sorted by converted mana cost (ascending), then alp
 
 ## Card Data
 
-Card metadata is fetched from [Scryfall](https://scryfall.com/) and cached locally at `~/.cache/jumpforge/` for one week. API rate limits are respected (100ms between requests).
+Card metadata is fetched from [Scryfall](https://scryfall.com/) and cached locally at `~/.cache/jumpstart-decklists/` for one week. API rate limits are respected (100ms between requests).

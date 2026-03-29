@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"jumpforge/deck"
+	"jumpstart-decklists/deck"
 )
 
 func testDeck(name, color string) deck.Deck {

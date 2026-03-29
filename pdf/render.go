@@ -12,7 +12,7 @@ import (
 
 	"github.com/signintech/gopdf"
 
-	"jumpforge/deck"
+	"jumpstart-decklists/deck"
 )
 
 //go:embed fonts/DejaVuSans.ttf

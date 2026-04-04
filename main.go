@@ -20,7 +20,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	log := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
+	log := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "15:04:05.000"}).
 		With().Timestamp().Logger()
 
 	inputPath := os.Args[1]
@@ -53,14 +54,9 @@ func main() {
 
 	// Fetch card data from Scryfall.
 	client := scryfall.NewClient(log)
-	cards := make(map[string]*scryfall.Card)
-	for _, name := range names {
-		card, err := client.FetchCard(name)
-		if err != nil {
-			log.Warn().Err(err).Str("card", name).Msg("skipping card")
-			continue
-		}
-		cards[name] = card
+	cards, err := client.FetchCards(names)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to fetch card data")
 	}
 	log.Info().Int("fetched", len(cards)).Int("total", len(names)).Msg("card fetch complete")
 
